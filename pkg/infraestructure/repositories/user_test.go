@@ -1,4 +1,4 @@
-package mysql
+package repositories
 
 import (
 	"database/sql"
@@ -83,11 +83,12 @@ func TestUpdate(t *testing.T) {
 			repo.db.Close()
 		}()
 
-		query := "UPDATE users SET first_name=\\?, last_name=\\?, email=\\?, password=\\? WHERE id=\\?;"
+		query := "UPDATE users SET first_name=\\?, last_name=\\?, email=\\?, password=\\?, last_modified=\\? WHERE id=\\?;"
 
-		mock.ExpectPrepare(query).ExpectExec().WithArgs(test.FirstName, test.LastName, "random@gmail.com", test.Password, test.Id).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectPrepare(query).ExpectExec().WithArgs(test.FirstName, test.LastName, "random@gmail.com", test.Password, "2006-01-02 15:04:05", test.Id).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		test.Email = "random@gmail.com"
+		test.LastModified = "2006-01-02 15:04:05"
 
 		err := repo.Update(&test)
 
