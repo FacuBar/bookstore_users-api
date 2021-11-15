@@ -7,6 +7,7 @@ require (
 	github.com/FacuBar/bookstore_utils-go v0.0.0-20211113145944-498ad1b78ccf
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/stretchr/testify v1.7.0
+	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa
 )
 
 require (
