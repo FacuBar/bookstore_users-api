@@ -36,8 +36,17 @@ var (
 	dateLayout        = "2006-01-02 15:04:05"
 )
 
+func (s *usersService) GetUser(userId int64) (*domain.User, rest_errors.RestErr) {
+	user, err := s.repo.Get(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (s *usersService) Register(user *domain.User) rest_errors.RestErr {
-	if err := Validate(user); err != nil {
+	if err := validate(user); err != nil {
 		return err
 	}
 
@@ -100,19 +109,25 @@ func (s *usersService) Update(user *domain.User) rest_errors.RestErr {
 // 	return nil
 // }
 
-func Validate(u *domain.User) rest_errors.RestErr {
-	Format(u)
+func validate(u *domain.User) rest_errors.RestErr {
+	format(u)
 	if _, err := mail.ParseAddress(u.Email); err != nil {
 		return rest_errors.NewBadRequestError("invalid email address")
 	}
 	if u.Password == "" {
 		return rest_errors.NewBadRequestError("invalid password")
 	}
+	if u.FirstName == "" {
+		return rest_errors.NewBadRequestError("invalid first name")
+	}
+	if u.LastName == "" {
+		return rest_errors.NewBadRequestError("invalid last name")
+	}
 	return nil
 }
 
-func Format(u *domain.User) {
+func format(u *domain.User) {
 	u.Email = strings.ToLower((strings.TrimSpace(u.Email)))
-	u.FirstName = strings.ToTitle(strings.TrimSpace(u.FirstName))
-	u.LastName = strings.ToTitle((strings.TrimSpace(u.LastName)))
+	u.FirstName = strings.Title(strings.TrimSpace(u.FirstName))
+	u.LastName = strings.Title((strings.TrimSpace(u.LastName)))
 }
