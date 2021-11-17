@@ -2,8 +2,9 @@ package main
 
 import (
 	"github.com/FacuBar/bookstore_users-api/pkg/core/service"
-	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/clients/mysql"
+	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/clients"
 	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/http/rest"
+	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/logger"
 	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/repositories"
 	"github.com/joho/godotenv"
 )
@@ -14,8 +15,9 @@ func main() {
 		panic("Error loading .env file")
 	}
 
-	db := mysql.ConnectDB()
-	ur := repositories.NewUsersRepository(db)
+	db := clients.ConnectDB()
+	l := logger.NewUserLogger()
+	ur := repositories.NewUsersRepository(db, l)
 	us := service.NewUsersService(ur)
 
 	router := rest.Handler(us)
