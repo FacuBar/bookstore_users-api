@@ -1,6 +1,7 @@
 package service
 
 import (
+	"net/http"
 	"net/mail"
 	"strings"
 	"sync"
@@ -39,6 +40,9 @@ var (
 func (s *usersService) GetUser(userId int64) (*domain.User, rest_errors.RestErr) {
 	user, err := s.repo.Get(userId)
 	if err != nil {
+		if err.Status() == http.StatusInternalServerError {
+			return nil, rest_errors.NewInternalServerError("error while getting user, try again later")
+		}
 		return nil, err
 	}
 
@@ -58,6 +62,9 @@ func (s *usersService) Register(user *domain.User) rest_errors.RestErr {
 	user.Password = string(hashedPassword)
 
 	if err := s.repo.Save(user); err != nil {
+		if err.Status() == http.StatusInternalServerError {
+			return rest_errors.NewInternalServerError("error while signing up user, try again later")
+		}
 		return err
 	}
 	return nil
@@ -66,6 +73,9 @@ func (s *usersService) Register(user *domain.User) rest_errors.RestErr {
 func (s *usersService) Login(email string, password string) (*domain.User, rest_errors.RestErr) {
 	user, err := s.repo.GetByEmail(strings.ToLower(strings.TrimSpace(email)))
 	if err != nil {
+		if err.Status() == http.StatusInternalServerError {
+			return nil, rest_errors.NewInternalServerError("error while login in user, try again later")
+		}
 		return nil, err
 	}
 
@@ -90,6 +100,12 @@ func (s *usersService) Update(user *domain.User) rest_errors.RestErr {
 	if strings.TrimSpace(user.Email) == "" {
 		user.Email = oldUser.Email
 	}
+	if user.Status == "" {
+		user.Status = oldUser.Status
+	}
+	if user.Privileges == 0 {
+		user.Privileges = oldUser.Privileges
+	}
 	if user.Password == "" {
 		user.Password = oldUser.Password
 	} else {
@@ -100,6 +116,9 @@ func (s *usersService) Update(user *domain.User) rest_errors.RestErr {
 	user.LastModified = time.Now().UTC().Format(dateLayout)
 
 	if err := s.repo.Update(user); err != nil {
+		if err.Status() == http.StatusInternalServerError {
+			return rest_errors.NewInternalServerError("error while uploading user, try again later")
+		}
 		return err
 	}
 	return nil
