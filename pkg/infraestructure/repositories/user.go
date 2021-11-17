@@ -4,6 +4,7 @@ package repositories
 
 import (
 	"database/sql"
+	"strings"
 	"sync"
 
 	"github.com/FacuBar/bookstore_users-api/pkg/core/domain"
@@ -17,13 +18,15 @@ var (
 )
 
 type usersRepository struct {
-	db *sql.DB
+	db  *sql.DB
+	log ports.UserLogger
 }
 
-func NewUsersRepository(db *sql.DB) ports.UsersRepository {
+func NewUsersRepository(db *sql.DB, logger ports.UserLogger) ports.UsersRepository {
 	onceUsersRepo.Do(func() {
 		instanceUsersRepo = &usersRepository{
-			db: db,
+			db:  db,
+			log: logger,
 		}
 	})
 	return instanceUsersRepo
@@ -35,20 +38,29 @@ const (
 	queryInsertUser      = "INSERT INTO users(first_name, last_name, email, date_created, status, password, privileges) VALUES(?, ?, ?, ?, ?, ?, ?);"
 	queryUpdateUser      = "UPDATE users SET first_name=?, last_name=?, email=?, password=?, last_modified=? WHERE id=?;"
 	queryUpdateUserAdmin = "UPDATE users SET first_name=?, last_name=?, email=?, password=?, status=?, privilege=?, last_modified=? WHERE id=?;"
-	queryDeleteUser      = "DELETE FROM users WHERE id=?;"
+	queryDeleteUser      = "UPDATE users SET status='inactive' WHERE id=?;"
+)
+
+const (
+	errNoRow = "no rows in result"
 )
 
 func (r *usersRepository) Get(id int64) (*domain.User, rest_errors.RestErr) {
 	stmt, err := r.db.Prepare(queryGetUser)
 	if err != nil {
-		return nil, rest_errors.NewInternalServerError(err.Error())
+		r.log.Error(err.Error(), err)
+		return nil, rest_errors.NewInternalServerError("db error")
 	}
 	defer stmt.Close()
 
 	var user domain.User
 	result := stmt.QueryRow(id)
 	if err := result.Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.DateCreated, &user.Status, &user.Privileges); err != nil {
-		return nil, rest_errors.NewInternalServerError(err.Error())
+		r.log.Error(err.Error(), err)
+		if strings.Contains(err.Error(), errNoRow) {
+			return nil, rest_errors.NewNotFoundError("user not found")
+		}
+		return nil, rest_errors.NewInternalServerError("db error")
 	}
 
 	return &user, nil
@@ -57,14 +69,19 @@ func (r *usersRepository) Get(id int64) (*domain.User, rest_errors.RestErr) {
 func (r *usersRepository) GetByEmail(email string) (*domain.User, rest_errors.RestErr) {
 	stmt, err := r.db.Prepare(queryGetUserByEmail)
 	if err != nil {
-		return nil, rest_errors.NewInternalServerError(err.Error())
+		r.log.Error(err.Error(), err)
+		return nil, rest_errors.NewInternalServerError("db error")
 	}
 	defer stmt.Close()
 
 	var user domain.User
 	result := stmt.QueryRow(email)
 	if err := result.Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.DateCreated, &user.Status, &user.Privileges, &user.Password); err != nil {
-		return nil, rest_errors.NewInternalServerError(err.Error())
+		r.log.Error(err.Error(), err)
+		if strings.Contains(err.Error(), errNoRow) {
+			return nil, rest_errors.NewNotFoundError("user not found")
+		}
+		return nil, rest_errors.NewInternalServerError("db error")
 	}
 	return &user, nil
 }
@@ -72,18 +89,21 @@ func (r *usersRepository) GetByEmail(email string) (*domain.User, rest_errors.Re
 func (r *usersRepository) Save(user *domain.User) rest_errors.RestErr {
 	stmt, err := r.db.Prepare(queryInsertUser)
 	if err != nil {
-		return rest_errors.NewInternalServerError(err.Error())
+		r.log.Error(err.Error(), err)
+		return rest_errors.NewInternalServerError("db error")
 	}
 	defer stmt.Close()
 
 	insertResult, err := stmt.Exec(user.FirstName, user.LastName, user.Email, user.DateCreated, user.Status, user.Password, user.Privileges)
 	if err != nil {
-		return rest_errors.NewInternalServerError(err.Error())
+		r.log.Error(err.Error(), err)
+		return rest_errors.NewInternalServerError("db error")
 	}
 
 	userId, err := insertResult.LastInsertId()
 	if err != nil {
-		return rest_errors.NewInternalServerError(err.Error())
+		r.log.Error(err.Error(), err)
+		return rest_errors.NewInternalServerError("db error")
 	}
 	user.Id = userId
 	return nil
@@ -92,28 +112,32 @@ func (r *usersRepository) Save(user *domain.User) rest_errors.RestErr {
 func (r *usersRepository) Update(user *domain.User) rest_errors.RestErr {
 	stmt, err := r.db.Prepare(queryUpdateUser)
 	if err != nil {
-		return rest_errors.NewInternalServerError(err.Error())
+		r.log.Error(err.Error(), err)
+		return rest_errors.NewInternalServerError("db error")
 	}
 	defer stmt.Close()
 
 	_, err = stmt.Exec(user.FirstName, user.LastName, user.Email, user.Password, user.LastModified, user.Id)
 	if err != nil {
-		return rest_errors.NewInternalServerError(err.Error())
+		r.log.Error(err.Error(), err)
+		return rest_errors.NewInternalServerError("db error")
 	}
 
 	return nil
 }
 
 func (r *usersRepository) UpdateAdmin(user *domain.User) rest_errors.RestErr {
-	stmt, err := r.db.Prepare(queryUpdateUser)
+	stmt, err := r.db.Prepare(queryUpdateUserAdmin)
 	if err != nil {
-		return rest_errors.NewInternalServerError(err.Error())
+		r.log.Error(err.Error(), err)
+		return rest_errors.NewInternalServerError("db error")
 	}
 	defer stmt.Close()
 
 	_, err = stmt.Exec(user.FirstName, user.LastName, user.Email, user.Password, user.Status, user.Privileges, user.LastModified, user.Id)
 	if err != nil {
-		return rest_errors.NewInternalServerError(err.Error())
+		r.log.Error(err.Error(), err)
+		return rest_errors.NewInternalServerError("db error")
 	}
 
 	return nil
@@ -122,12 +146,14 @@ func (r *usersRepository) UpdateAdmin(user *domain.User) rest_errors.RestErr {
 func (r *usersRepository) Delete(id int64) rest_errors.RestErr {
 	stmt, err := r.db.Prepare(queryDeleteUser)
 	if err != nil {
-		return rest_errors.NewInternalServerError(err.Error())
+		r.log.Error(err.Error(), err)
+		return rest_errors.NewInternalServerError("db error")
 	}
 	defer stmt.Close()
 
 	if _, err = stmt.Exec(id); err != nil {
-		return rest_errors.NewInternalServerError(err.Error())
+		r.log.Error(err.Error(), err)
+		return rest_errors.NewInternalServerError("db error")
 	}
 	return nil
 }
