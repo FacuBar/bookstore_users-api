@@ -32,9 +32,9 @@ func NewUsersService(repo ports.UsersRepository) ports.UsersService {
 }
 
 var (
-	statusActive      = "active"
-	defaultPriveleges = 1 << 0
-	dateLayout        = "2006-01-02 15:04:05"
+	statusActive = "active"
+	defaultRole  = "user"
+	dateLayout   = "2006-01-02 15:04:05"
 )
 
 func (s *usersService) GetUser(userId int64) (*domain.User, rest_errors.RestErr) {
@@ -56,7 +56,7 @@ func (s *usersService) Register(user *domain.User) rest_errors.RestErr {
 
 	user.DateCreated = time.Now().UTC().Format(dateLayout)
 	user.Status = statusActive
-	user.Privileges = defaultPriveleges
+	user.Role = defaultRole
 
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
 	user.Password = string(hashedPassword)
@@ -103,8 +103,8 @@ func (s *usersService) Update(user *domain.User) rest_errors.RestErr {
 	if user.Status == "" {
 		user.Status = oldUser.Status
 	}
-	if user.Privileges == 0 {
-		user.Privileges = oldUser.Privileges
+	if user.Role == "" {
+		user.Role = oldUser.Role
 	}
 	if user.Password == "" {
 		user.Password = oldUser.Password

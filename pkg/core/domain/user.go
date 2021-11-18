@@ -5,9 +5,9 @@ type User struct {
 	FirstName    string `json:"first_name"`
 	LastName     string `json:"last_name"`
 	Email        string `json:"email"`
-	Password     string `json:"password"`
+	Password     string `json:"-"`
 	DateCreated  string `json:"date_created"`
-	LastModified string `json:"last_modified"`
-	Status       string `json:"status"`
-	Privileges   int    `json:"privileges"`
+	LastModified string `json:"-"`
+	Status       string `json:"-"`
+	Role         string `json:"role"`
 }
