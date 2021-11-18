@@ -10,6 +10,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/FacuBar/bookstore_users-api/pkg/core/domain"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 )
 
 func NewMock() (*sql.DB, sqlmock.Sqlmock) {
@@ -29,22 +30,28 @@ var test = domain.User{
 	Password:    "x4BRvJE8glEHeAX8GkevhxTNsglMxpIBdSjXj4O6538jdqbzx0saVbfJc3hZ",
 	DateCreated: "2006-01-02 15:04:05",
 	Status:      "active",
-	Privileges:  1,
+	Role:        "user",
 }
 
+type loggerMock struct {
+}
+
+func (l *loggerMock) Error(msg string, err error, tags ...zap.Field) {}
+func (l *loggerMock) Info(msg string, tags ...zap.Field)             {}
+
 func TestGet(t *testing.T) {
-	query := "SELECT id, first_name, last_name, email, date_created, status, privileges FROM users WHERE id=\\?;"
+	query := "SELECT id, first_name, last_name, email, date_created, status, role FROM users WHERE id=\\?;"
 
 	t.Run("NoError", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
 
-		rows := sqlmock.NewRows([]string{"id", "first_name", "last_name", "email", "date_created", "status", "privileges"}).
-			AddRow(test.Id, test.FirstName, test.LastName, test.Email, test.DateCreated, test.Status, test.Privileges)
+		rows := sqlmock.NewRows([]string{"id", "first_name", "last_name", "email", "date_created", "status", "role"}).
+			AddRow(test.Id, test.FirstName, test.LastName, test.Email, test.DateCreated, test.Status, test.Role)
 
 		mock.ExpectPrepare(query).ExpectQuery().WithArgs(test.Id).WillReturnRows(rows)
 
@@ -59,7 +66,7 @@ func TestGet(t *testing.T) {
 	t.Run("UserNotFound", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
@@ -76,7 +83,7 @@ func TestGet(t *testing.T) {
 	t.Run("QueryingError", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
@@ -92,7 +99,7 @@ func TestGet(t *testing.T) {
 	t.Run("PrepareError", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
@@ -109,18 +116,18 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetByEmail(t *testing.T) {
-	query := "SELECT id, first_name, last_name, email, date_created, status, privileges, password FROM users WHERE email=\\?;"
+	query := "SELECT id, first_name, last_name, email, date_created, status, role, password FROM users WHERE email=\\?;"
 
 	t.Run("NoError", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
 
-		rows := sqlmock.NewRows([]string{"id", "first_name", "last_name", "email", "date_created", "status", "privileges", "password"}).
-			AddRow(test.Id, test.FirstName, test.LastName, test.Email, test.DateCreated, test.Status, test.Privileges, test.Password)
+		rows := sqlmock.NewRows([]string{"id", "first_name", "last_name", "email", "date_created", "status", "role", "password"}).
+			AddRow(test.Id, test.FirstName, test.LastName, test.Email, test.DateCreated, test.Status, test.Role, test.Password)
 		mock.ExpectPrepare(query).ExpectQuery().WithArgs(test.Email).WillReturnRows(rows)
 
 		user, err := repo.GetByEmail(test.Email)
@@ -134,7 +141,7 @@ func TestGetByEmail(t *testing.T) {
 	t.Run("UserNotFound", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
@@ -151,7 +158,7 @@ func TestGetByEmail(t *testing.T) {
 	t.Run("QueryingError", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
@@ -167,7 +174,7 @@ func TestGetByEmail(t *testing.T) {
 	t.Run("PrepareError", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
@@ -184,17 +191,17 @@ func TestGetByEmail(t *testing.T) {
 }
 
 func TestSave(t *testing.T) {
-	query := "INSERT INTO users\\(first_name, last_name, email, date_created, status, password, privileges\\) VALUES\\(\\?, \\?, \\?, \\?, \\?, \\?, \\?\\);"
+	query := "INSERT INTO users\\(first_name, last_name, email, date_created, status, password, role\\) VALUES\\(\\?, \\?, \\?, \\?, \\?, \\?, \\?\\);"
 
 	t.Run("NoError", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
 
-		mock.ExpectPrepare(query).ExpectExec().WithArgs(test.FirstName, test.LastName, test.Email, test.DateCreated, test.Status, test.Password, test.Privileges).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectPrepare(query).ExpectExec().WithArgs(test.FirstName, test.LastName, test.Email, test.DateCreated, test.Status, test.Password, test.Role).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		err := repo.Save(&test)
 
@@ -204,12 +211,12 @@ func TestSave(t *testing.T) {
 	t.Run("SavingUser", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
 
-		mock.ExpectPrepare(query).ExpectExec().WithArgs(test.FirstName, test.LastName, test.Email, test.DateCreated, test.Status, test.Password, test.Privileges).WillReturnError(errors.New("..."))
+		mock.ExpectPrepare(query).ExpectExec().WithArgs(test.FirstName, test.LastName, test.Email, test.DateCreated, test.Status, test.Password, test.Role).WillReturnError(errors.New("..."))
 
 		err := repo.Save(&test)
 
@@ -221,7 +228,7 @@ func TestSave(t *testing.T) {
 	t.Run("PrepareError", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
@@ -242,7 +249,7 @@ func TestUpdate(t *testing.T) {
 	t.Run("NoError", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
@@ -260,7 +267,7 @@ func TestUpdate(t *testing.T) {
 	t.Run("ExecError", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
@@ -276,7 +283,7 @@ func TestUpdate(t *testing.T) {
 	t.Run("PrepareError", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
@@ -292,17 +299,17 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestUpdateAdmin(t *testing.T) {
-	query := "UPDATE users SET first_name=\\?, last_name=\\?, email=\\?, password=\\?, status=\\?, privilege=\\?, last_modified=\\? WHERE id=\\?;"
+	query := "UPDATE users SET first_name=\\?, last_name=\\?, email=\\?, password=\\?, status=\\?, role=\\?, last_modified=\\? WHERE id=\\?;"
 
 	t.Run("NoError", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
 
-		mock.ExpectPrepare(query).ExpectExec().WithArgs(test.FirstName, test.LastName, "random@gmail.com", test.Password, test.Status, test.Privileges, "2006-01-02 15:04:05", test.Id).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectPrepare(query).ExpectExec().WithArgs(test.FirstName, test.LastName, "random@gmail.com", test.Password, test.Status, test.Role, "2006-01-02 15:04:05", test.Id).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		test.Email = "random@gmail.com"
 		test.LastModified = "2006-01-02 15:04:05"
@@ -315,12 +322,12 @@ func TestUpdateAdmin(t *testing.T) {
 	t.Run("ExecError", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
 
-		mock.ExpectPrepare(query).ExpectExec().WithArgs(test.FirstName, test.LastName, test.Email, test.Password, test.Status, test.Privileges, test.LastModified, test.Id).WillReturnError(sql.ErrConnDone)
+		mock.ExpectPrepare(query).ExpectExec().WithArgs(test.FirstName, test.LastName, test.Email, test.Password, test.Status, test.Role, test.LastModified, test.Id).WillReturnError(sql.ErrConnDone)
 
 		err := repo.UpdateAdmin(&test)
 		assert.NotNil(t, err)
@@ -331,7 +338,7 @@ func TestUpdateAdmin(t *testing.T) {
 	t.Run("PrepareError", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
@@ -352,7 +359,7 @@ func TestDelete(t *testing.T) {
 	t.Run("NoError", func(t *testing.T) {
 		db, mock := NewMock()
 
-		repo := &usersRepository{db: db}
+		repo := &usersRepository{db: db, log: &loggerMock{}}
 		defer func() {
 			repo.db.Close()
 		}()
