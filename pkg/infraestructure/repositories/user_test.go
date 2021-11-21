@@ -370,4 +370,34 @@ func TestDelete(t *testing.T) {
 
 		assert.Nil(t, err)
 	})
+
+	t.Run("ErrorPrepare", func(t *testing.T) {
+		db, mock := NewMock()
+
+		repo := &usersRepository{db: db, log: &loggerMock{}}
+		defer func() {
+			repo.db.Close()
+		}()
+
+		mock.ExpectPrepare(query).WillReturnError(sql.ErrConnDone)
+
+		err := repo.Delete(test.Id)
+
+		assert.NotNil(t, err)
+	})
+
+	t.Run("ErrorExec", func(t *testing.T) {
+		db, mock := NewMock()
+
+		repo := &usersRepository{db: db, log: &loggerMock{}}
+		defer func() {
+			repo.db.Close()
+		}()
+
+		mock.ExpectPrepare(query).ExpectExec().WithArgs(test.Id).WillReturnError(sql.ErrConnDone)
+
+		err := repo.Delete(test.Id)
+
+		assert.NotNil(t, err)
+	})
 }
