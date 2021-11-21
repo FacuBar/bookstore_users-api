@@ -41,7 +41,7 @@ func (s *usersService) GetUser(userId int64) (*domain.User, rest_errors.RestErr)
 	user, err := s.repo.Get(userId)
 	if err != nil {
 		if err.Status() == http.StatusInternalServerError {
-			return nil, rest_errors.NewInternalServerError("error while getting user, try again later")
+			return nil, rest_errors.NewInternalServerError("error while trying to get user, try again later")
 		}
 		return nil, err
 	}
@@ -62,10 +62,7 @@ func (s *usersService) Register(user *domain.User) rest_errors.RestErr {
 	user.Password = string(hashedPassword)
 
 	if err := s.repo.Save(user); err != nil {
-		if err.Status() == http.StatusInternalServerError {
-			return rest_errors.NewInternalServerError("error while signing up user, try again later")
-		}
-		return err
+		return rest_errors.NewInternalServerError("error while trying to register, try again later")
 	}
 	return nil
 }
@@ -74,13 +71,13 @@ func (s *usersService) Login(email string, password string) (*domain.User, rest_
 	user, err := s.repo.GetByEmail(strings.ToLower(strings.TrimSpace(email)))
 	if err != nil {
 		if err.Status() == http.StatusInternalServerError {
-			return nil, rest_errors.NewInternalServerError("error while login in user, try again later")
+			return nil, rest_errors.NewInternalServerError("error while trying to login, try again later")
 		}
 		return nil, err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return nil, rest_errors.NewBadRequestError("Invalid credentials")
+		return nil, rest_errors.NewBadRequestError("invalid credentials")
 	}
 	return user, nil
 }
@@ -88,6 +85,9 @@ func (s *usersService) Login(email string, password string) (*domain.User, rest_
 func (s *usersService) Update(user *domain.User) rest_errors.RestErr {
 	oldUser, err := s.repo.Get(user.Id)
 	if err != nil {
+		if err.Status() == http.StatusInternalServerError {
+			return rest_errors.NewInternalServerError("error while trying to fetch user, try again later")
+		}
 		return err
 	}
 
@@ -116,10 +116,7 @@ func (s *usersService) Update(user *domain.User) rest_errors.RestErr {
 	user.LastModified = time.Now().UTC().Format(dateLayout)
 
 	if err := s.repo.Update(user); err != nil {
-		if err.Status() == http.StatusInternalServerError {
-			return rest_errors.NewInternalServerError("error while uploading user, try again later")
-		}
-		return err
+		return rest_errors.NewInternalServerError("error while trying to update user, try again later")
 	}
 	return nil
 }
