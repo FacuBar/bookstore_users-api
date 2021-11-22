@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/FacuBar/bookstore_users-api/pkg/core/service"
+	"net/http"
+
 	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/clients"
 	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/http/rest"
 	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/logger"
-	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/repositories"
 	"github.com/joho/godotenv"
 )
 
@@ -17,9 +17,8 @@ func main() {
 
 	db := clients.ConnectDB()
 	l := logger.NewUserLogger()
-	ur := repositories.NewUsersRepository(db, l)
-	us := service.NewUsersService(ur)
 
-	router := rest.Handler(us)
-	router.Run(":8080")
+	server := rest.NewServer(db, l, &http.Client{})
+
+	server.Start(":8080")
 }

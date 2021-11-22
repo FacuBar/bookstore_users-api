@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Handler(us ports.UsersService) *gin.Engine {
+func (s *Server) Handler(us ports.UsersService) *gin.Engine {
 	router := gin.Default()
 
 	router.POST("/users", registerUser(us))
@@ -21,7 +21,7 @@ func Handler(us ports.UsersService) *gin.Engine {
 }
 
 // User handlers
-func registerUser(s ports.UsersService) func(c *gin.Context) {
+func registerUser(s ports.UsersService) gin.HandlerFunc {
 	type request struct {
 		FirstName       string `json:"first_name"`
 		LastName        string `json:"last_name"`
@@ -59,7 +59,7 @@ func registerUser(s ports.UsersService) func(c *gin.Context) {
 	}
 }
 
-func getUser(s ports.UsersService) func(c *gin.Context) {
+func getUser(s ports.UsersService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, userErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
 		if userErr != nil {
@@ -77,7 +77,7 @@ func getUser(s ports.UsersService) func(c *gin.Context) {
 	}
 }
 
-func login(s ports.UsersService) func(c *gin.Context) {
+func login(s ports.UsersService) gin.HandlerFunc {
 	type request struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
