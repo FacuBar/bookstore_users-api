@@ -15,7 +15,7 @@ func (s *Server) Handler(us ports.UsersService) *gin.Engine {
 
 	router.POST("/users", registerUser(us))
 	router.POST("/users/login", login(us))
-	router.GET("/users/:user_id", getUser(us))
+	router.GET("/users/:user_id", authenticate(getUser(us), s.rest))
 
 	return router
 }
@@ -33,7 +33,7 @@ func registerUser(s ports.UsersService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var registerRequest request
 		if err := c.ShouldBindJSON(&registerRequest); err != nil {
-			restErr := rest_errors.NewInternalServerError("invalid request")
+			restErr := rest_errors.NewBadRequestError("invalid request")
 			c.JSON(restErr.Status(), restErr)
 			return
 		}
@@ -64,6 +64,13 @@ func getUser(s ports.UsersService) gin.HandlerFunc {
 		userId, userErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
 		if userErr != nil {
 			restErr := rest_errors.NewBadRequestError("user id not valid")
+			c.JSON(restErr.Status(), restErr)
+			return
+		}
+
+		authorizedUser := c.MustGet(userPayloadKey).(userPayload)
+		if authorizedUser.Id != userId {
+			restErr := rest_errors.NewUnauthorizedError("you don't have the permissions to access this resource")
 			c.JSON(restErr.Status(), restErr)
 			return
 		}
