@@ -1,0 +1,160 @@
+definitions:
+  RestErr:
+    properties:
+      Error:
+        type: string
+      Message:
+        type: string
+      Status:
+        format: int64
+        type: integer
+    type: object
+    x-go-package: github.com/FacuBar/bookstore_utils-go/rest_errors
+  User:
+    properties:
+      date_created:
+        type: string
+        x-go-name: DateCreated
+      email:
+        type: string
+        x-go-name: Email
+      first_name:
+        type: string
+        x-go-name: FirstName
+      id:
+        format: int64
+        type: integer
+        x-go-name: Id
+      last_name:
+        type: string
+        x-go-name: LastName
+      role:
+        type: string
+        x-go-name: Role
+    type: object
+    x-go-package: github.com/FacuBar/bookstore_users-api/pkg/core/domain
+  requestLoginUser:
+    properties:
+      email:
+        example: user1@email.com
+        type: string
+        x-go-name: Email
+      password:
+        example: somepassword
+        type: string
+        x-go-name: Password
+    required:
+    - email
+    - password
+    type: object
+    x-go-package: github.com/FacuBar/bookstore_users-api/pkg/infraestructure/http/rest
+  requestRegister:
+    properties:
+      confirm_password:
+        example: somepassword
+        type: string
+        x-go-name: ConfirmPassword
+      email:
+        example: oscaac@email.com
+        type: string
+        x-go-name: Email
+      first_name:
+        example: Oscar
+        type: string
+        x-go-name: FirstName
+      last_name:
+        example: isaac
+        type: string
+        x-go-name: LastName
+      password:
+        example: somepassword
+        type: string
+        x-go-name: Password
+    required:
+    - first_name
+    - last_name
+    - email
+    - password
+    - confirm_password
+    type: object
+    x-go-package: github.com/FacuBar/bookstore_users-api/pkg/infraestructure/http/rest
+info: {}
+paths:
+  /users:
+    post:
+      description: Registers a new user into the database
+      operationId: registerUsers
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/requestRegister'
+      responses:
+        "200":
+          $ref: '#/responses/genericUser'
+        "400":
+          $ref: '#/responses/genericError'
+        "500":
+          $ref: '#/responses/genericError'
+      tags:
+      - users
+  /users/{id}:
+    get:
+      description: |-
+        List information of a particular user
+        Only accessible by the authenticated user
+      operationId: listUser
+      parameters:
+      - format: int64
+        in: path
+        minimum: 1
+        name: id
+        required: true
+        type: integer
+        x-go-name: ID
+      - example: '"Bearer {auth_token}"'
+        in: header
+        name: Authorization
+        type: string
+      responses:
+        "200":
+          $ref: '#/responses/genericUser'
+        "400":
+          $ref: '#/responses/genericError'
+        "401":
+          $ref: '#/responses/genericError'
+        "404":
+          $ref: '#/responses/genericError'
+        "500":
+          $ref: '#/responses/genericError'
+      tags:
+      - users
+  /users/login:
+    post:
+      description: Validates that the email and the passwords provided are valid for
+        a registered user
+      operationId: loginUsers
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/requestLoginUser'
+      responses:
+        "200":
+          $ref: '#/responses/genericUser'
+        "400":
+          $ref: '#/responses/genericError'
+        "500":
+          $ref: '#/responses/genericError'
+      tags:
+      - users
+responses:
+  genericError:
+    description: ""
+    schema:
+      $ref: '#/definitions/RestErr'
+  genericUser:
+    description: ""
+    schema:
+      $ref: '#/definitions/User'
+swagger: "2.0"

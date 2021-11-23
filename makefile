@@ -16,4 +16,7 @@ migratedown:
 server:
 	go run cmd/main.go
 
-.PHONY: mysql createdb dropdb	migrateup migratedown server
+swagger:
+	swagger generate spec -o ./swagger.yaml --scan-models
+
+.PHONY: mysql createdb dropdb	migrateup migratedown server swagger

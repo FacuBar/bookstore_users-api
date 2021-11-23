@@ -181,8 +181,8 @@ func TestLogin(t *testing.T) {
 
 		assert.Nil(t, user)
 		assert.NotNil(t, err)
-		assert.EqualValues(t, "user not found", err.Message())
-		assert.EqualValues(t, http.StatusNotFound, err.Status())
+		assert.EqualValues(t, "invalid credentials", err.Message())
+		assert.EqualValues(t, http.StatusBadRequest, err.Status())
 	})
 
 	t.Run("DbError", func(t *testing.T) {

@@ -1,3 +1,19 @@
+// Package classifiction Bookstore-users API.
+//
+// Documentation for Bookstore-users API
+//
+// Schemes: http
+// Host: localhost
+// BasePath: /
+// Version: 1.0.0
+//
+// Consumes:
+// - application/json
+//
+// Produces:
+// - application/json
+
+// swagger:meta
 package rest
 
 import (
@@ -8,19 +24,36 @@ import (
 	"github.com/FacuBar/bookstore_users-api/pkg/core/ports"
 	"github.com/FacuBar/bookstore_utils-go/rest_errors"
 	"github.com/gin-gonic/gin"
+	"github.com/go-openapi/runtime/middleware"
 )
 
 func (s *Server) Handler(us ports.UsersService) *gin.Engine {
 	router := gin.Default()
 
+	// User related endpoints
 	router.POST("/users", registerUser(us))
 	router.POST("/users/login", login(us))
 	router.GET("/users/:user_id", authenticate(getUser(us), s.rest))
+	// router.PUT("/users/:user_id")
+	// router.DELETE("/users/:user_id")
+
+	// Paymentoptions relatedendpoints ("/users/:user_id/paymentoptions...")
+
+	// Serving docs
+	opts := middleware.RedocOpts{SpecURL: "/swagger.yaml"}
+	sh := middleware.Redoc(opts, nil)
+	router.GET("/docs", gin.WrapH(sh))
+	router.GET("/swagger.yaml", gin.WrapH(http.FileServer(http.Dir("./"))))
 
 	return router
 }
 
-// User handlers
+// swagger:route POST /users users registerUsers
+// Registers a new user into the database
+// responses:
+// 	200: genericUser
+// 	400: genericError
+// 	500: genericError
 func registerUser(s ports.UsersService) gin.HandlerFunc {
 	type request struct {
 		FirstName       string `json:"first_name"`
@@ -59,6 +92,15 @@ func registerUser(s ports.UsersService) gin.HandlerFunc {
 	}
 }
 
+// swagger:route GET /users/{id} users listUser
+// List information of a particular user
+// Only accessible by the authenticated user
+// responses:
+// 	200: genericUser
+// 	400: genericError
+// 	401: genericError
+// 	404: genericError
+// 	500: genericError
 func getUser(s ports.UsersService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, userErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
@@ -84,6 +126,12 @@ func getUser(s ports.UsersService) gin.HandlerFunc {
 	}
 }
 
+// swagger:route POST /users/login users loginUsers
+// Validates that the email and the passwords provided are valid for a registered user
+// responses:
+// 	200: genericUser
+// 	400: genericError
+// 	500: genericError
 func login(s ports.UsersService) gin.HandlerFunc {
 	type request struct {
 		Email    string `json:"email"`

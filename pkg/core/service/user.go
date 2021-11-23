@@ -73,10 +73,14 @@ func (s *usersService) Register(user *domain.User) rest_errors.RestErr {
 func (s *usersService) Login(email string, password string) (*domain.User, rest_errors.RestErr) {
 	user, err := s.repo.GetByEmail(strings.ToLower(strings.TrimSpace(email)))
 	if err != nil {
-		if err.Status() == http.StatusInternalServerError {
+		switch err.Status() {
+		case http.StatusInternalServerError:
 			return nil, rest_errors.NewInternalServerError("error while trying to login, try again later")
+		case http.StatusNotFound:
+			return nil, rest_errors.NewBadRequestError("invalid credentials")
+		default:
+			return nil, err
 		}
-		return nil, err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
