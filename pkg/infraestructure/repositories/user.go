@@ -4,6 +4,7 @@ package repositories
 
 import (
 	"database/sql"
+	"net/http"
 	"strings"
 	"sync"
 
@@ -97,6 +98,9 @@ func (r *usersRepository) Save(user *domain.User) rest_errors.RestErr {
 	insertResult, err := stmt.Exec(user.FirstName, user.LastName, user.Email, user.DateCreated, user.Status, user.Password, user.Role)
 	if err != nil {
 		r.log.Error(err.Error(), err)
+		if strings.Contains(err.Error(), "Duplicate entry") {
+			return rest_errors.NewRestError("email already in user", http.StatusConflict, "conflict")
+		}
 		return rest_errors.NewInternalServerError("db error")
 	}
 

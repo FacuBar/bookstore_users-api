@@ -62,6 +62,9 @@ func (s *usersService) Register(user *domain.User) rest_errors.RestErr {
 	user.Password = string(hashedPassword)
 
 	if err := s.repo.Save(user); err != nil {
+		if err.Status() != http.StatusInternalServerError {
+			return err
+		}
 		return rest_errors.NewInternalServerError("error while trying to register, try again later")
 	}
 	return nil
