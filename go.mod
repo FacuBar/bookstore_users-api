@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/FacuBar/bookstore_utils-go v0.0.0-20211113145944-498ad1b78ccf
+	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.4
 	github.com/go-openapi/runtime v0.21.0
 	github.com/go-sql-driver/mysql v1.6.0

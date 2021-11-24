@@ -222,7 +222,7 @@ func TestUpdate(t *testing.T) {
 
 		update := userTestUpdate
 
-		err := s.Update(&update)
+		err := s.Update(&update, false)
 
 		assert.Nil(t, err)
 		assert.EqualValues(t, "oscaac@gmail.com", update.Email)
@@ -241,7 +241,7 @@ func TestUpdate(t *testing.T) {
 
 		update := userTestUpdate
 
-		err := s.Update(&update)
+		err := s.Update(&update, false)
 
 		assert.NotNil(t, err)
 		assert.EqualValues(t, "error while trying to fetch user, try again later", err.Message())
@@ -257,7 +257,7 @@ func TestUpdate(t *testing.T) {
 
 		update := userTestUpdate
 
-		err := s.Update(&update)
+		err := s.Update(&update, false)
 
 		assert.NotNil(t, err)
 		assert.EqualValues(t, "user not found", err.Message())
@@ -277,7 +277,7 @@ func TestUpdate(t *testing.T) {
 
 		update := userTestUpdate
 
-		err := s.Update(&update)
+		err := s.Update(&update, false)
 
 		assert.NotNil(t, err)
 		assert.EqualValues(t, "error while trying to update user, try again later", err.Message())
