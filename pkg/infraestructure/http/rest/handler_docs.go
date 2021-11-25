@@ -22,10 +22,10 @@ type userIDParamsWrapper struct {
 	// in: path
 	// required: true
 	// minimum : 1
-	ID int `json:"user_id"`
+	ID int `json:"id"`
 }
 
-// swagger:parameters listUser updateUser
+// swagger:parameters listUser
 type authHeaderWrapper struct {
 	// in: header
 	// example: "Bearer {auth_token}"
@@ -46,7 +46,7 @@ type requestRegister struct {
 	// example : somepassword
 	Password string `json:"password"`
 	// required : true
-	// example: somepassword
+	// example : somepassword
 	ConfirmPassword string `json:"confirm_password"`
 }
 
@@ -69,20 +69,4 @@ type requestLoginUser struct {
 type requestLoginWrapper struct {
 	// in: body
 	Body requestLoginUser
-}
-
-type requestUpdateUser struct {
-	FirstName       string `json:"first_name"`
-	LastName        string `json:"last_name"`
-	Email           string `json:"email"`
-	Password        string `json:"password"`
-	ConfirmPassword string `json:"confirm_password"`
-	Status          string `json:"status"`
-	Role            string `json:"role"`
-}
-
-// swagger:parameters updateUser
-type requestUpdateWrapper struct {
-	// in: body
-	Body requestUpdateUser
 }

@@ -59,13 +59,8 @@ func authenticate(handler gin.HandlerFunc, restClient *http.Client) gin.HandlerF
 		defer resp.Body.Close()
 
 		if resp.StatusCode > 299 {
-			if resp.StatusCode == http.StatusInternalServerError {
-				restErr := rest_errors.NewInternalServerError("couldn't verify session's validity")
-				c.AbortWithStatusJSON(restErr.Status(), restErr)
-				return
-			}
-			restErr := rest_errors.NewUnauthorizedError("you are not logged in")
-			c.AbortWithStatusJSON(restErr.Status(), restErr)
+			errResponse, _ := rest_errors.NewRestErrorFromBytes(bytes)
+			c.AbortWithStatusJSON(errResponse.Status(), errResponse)
 			return
 		}
 
