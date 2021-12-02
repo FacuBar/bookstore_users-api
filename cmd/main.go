@@ -1,7 +1,12 @@
 package main
 
 import (
+	"context"
+	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"time"
 
 	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/clients"
 	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/http/rest"
@@ -18,7 +23,16 @@ func main() {
 	db := clients.ConnectDB()
 	l := logger.NewUserLogger()
 
-	server := rest.NewServer(db, l, &http.Client{})
+	server := rest.NewServer(&http.Server{Addr: ":8080"}, db, l, &http.Client{})
 
-	server.Start(":8080")
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+
+	<-quit
+	log.Println("Shutdown server ...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	server.Stop(ctx)
 }
