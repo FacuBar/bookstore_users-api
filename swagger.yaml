@@ -78,31 +78,6 @@ definitions:
     - confirm_password
     type: object
     x-go-package: github.com/FacuBar/bookstore_users-api/pkg/infraestructure/http/rest
-  requestUpdateUser:
-    properties:
-      confirm_password:
-        type: string
-        x-go-name: ConfirmPassword
-      email:
-        type: string
-        x-go-name: Email
-      first_name:
-        type: string
-        x-go-name: FirstName
-      last_name:
-        type: string
-        x-go-name: LastName
-      password:
-        type: string
-        x-go-name: Password
-      role:
-        type: string
-        x-go-name: Role
-      status:
-        type: string
-        x-go-name: Status
-    type: object
-    x-go-package: github.com/FacuBar/bookstore_users-api/pkg/infraestructure/http/rest
 info: {}
 paths:
   /users:
@@ -123,7 +98,7 @@ paths:
           $ref: '#/responses/genericError'
       tags:
       - users
-  /users/{user_id}:
+  /users/{id}:
     get:
       description: |-
         List information of a particular user
@@ -133,7 +108,7 @@ paths:
       - format: int64
         in: path
         minimum: 1
-        name: user_id
+        name: id
         required: true
         type: integer
         x-go-name: ID
@@ -149,30 +124,6 @@ paths:
         "401":
           $ref: '#/responses/genericError'
         "404":
-          $ref: '#/responses/genericError'
-        "500":
-          $ref: '#/responses/genericError'
-      tags:
-      - users
-    put:
-      description: Validates that the email and the passwords provided are valid for
-        a registered user
-      operationId: updateUser
-      parameters:
-      - example: '"Bearer {auth_token}"'
-        in: header
-        name: Authorization
-        type: string
-      - in: body
-        name: Body
-        schema:
-          $ref: '#/definitions/requestUpdateUser'
-      responses:
-        "200":
-          $ref: '#/responses/genericUser'
-        "400":
-          $ref: '#/responses/genericError'
-        "401":
           $ref: '#/responses/genericError'
         "500":
           $ref: '#/responses/genericError'

@@ -30,10 +30,11 @@ import (
 func (s *Server) Handler(us ports.UsersService) *gin.Engine {
 	router := gin.Default()
 
+	// User related endpoints
 	router.POST("/users", registerUser(us))
 	router.POST("/users/login", login(us))
 	router.GET("/users/:user_id", authenticate(getUser(us), s.rest))
-	router.PUT("/users/:user_id", authenticate(updateUser(us), s.rest))
+	// router.PUT("/users/:user_id")
 	// router.DELETE("/users/:user_id")
 
 	// Paymentoptions relatedendpoints ("/users/:user_id/paymentoptions...")
@@ -91,7 +92,7 @@ func registerUser(s ports.UsersService) gin.HandlerFunc {
 	}
 }
 
-// swagger:route GET /users/{user_id} users listUser
+// swagger:route GET /users/{id} users listUser
 // List information of a particular user
 // Only accessible by the authenticated user
 // responses:
@@ -150,75 +151,6 @@ func login(s ports.UsersService) gin.HandlerFunc {
 			c.JSON(err.Status(), err)
 			return
 		}
-		c.JSON(http.StatusOK, user)
-	}
-}
-
-// swagger:route PUT /users/{user_id} users updateUser
-// Validates that the email and the passwords provided are valid for a registered user
-// responses:
-// 	200: genericUser
-// 	400: genericError
-//  401: genericError
-// 	500: genericError
-func updateUser(s ports.UsersService) gin.HandlerFunc {
-	type request struct {
-		FirstName       string `json:"first_name"`
-		LastName        string `json:"last_name"`
-		Email           string `json:"email"`
-		Password        string `json:"password"`
-		ConfirmPassword string `json:"confirm_password"`
-		Status          string `json:"status"`
-		Role            string `json:"role"`
-	}
-
-	return func(c *gin.Context) {
-		userId, userErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
-		if userErr != nil {
-			restErr := rest_errors.NewBadRequestError("user id not valid")
-			c.JSON(restErr.Status(), restErr)
-			return
-		}
-
-		authorizedUser := c.MustGet(userPayloadKey).(userPayload)
-
-		if authorizedUser.Id != userId && authorizedUser.Role != "admin" {
-			restErr := rest_errors.NewUnauthorizedError("you don't have the permissions to perform this action")
-			c.JSON(restErr.Status(), restErr)
-			return
-		}
-
-		var userRequest request
-		if err := c.ShouldBindJSON(&userRequest); err != nil {
-			restErr := rest_errors.NewBadRequestError("invalid request body")
-			c.JSON(restErr.Status(), restErr)
-			return
-		}
-
-		if userRequest.Password != userRequest.ConfirmPassword {
-			restErr := rest_errors.NewBadRequestError("passwords are not equal")
-			c.JSON(restErr.Status(), restErr)
-			return
-		}
-
-		user := domain.User{
-			Id:        userId,
-			FirstName: userRequest.FirstName,
-			LastName:  userRequest.LastName,
-			Email:     userRequest.Email,
-			Password:  userRequest.Password,
-		}
-
-		if authorizedUser.Role == "admin" {
-			user.Role = userRequest.Role
-			user.Status = userRequest.Status
-		}
-
-		if err := s.Update(&user, authorizedUser.Role == "admin"); err != nil {
-			c.JSON(err.Status(), err)
-			return
-		}
-
 		c.JSON(http.StatusOK, user)
 	}
 }
