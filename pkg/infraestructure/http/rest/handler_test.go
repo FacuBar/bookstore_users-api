@@ -59,23 +59,23 @@ func TestRegisterUser(t *testing.T) {
 			return nil
 		}
 
-		server := NewServer(nil, nil, nil)
-		server.router = server.Handler(usm)
+		server := NewServer(&http.Server{}, nil, nil, nil)
+		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/users", strings.NewReader(`{"first_name":"Oscar","last_name":"Isaac","email": "oscaac@gmail.com","password":"somepass","confirm_password":"somepass"}`))
-		server.router.ServeHTTP(w, req)
+		server.srv.Handler.ServeHTTP(w, req)
 
 		assert.EqualValues(t, http.StatusCreated, w.Code)
 	})
 
 	t.Run("InvalidRequest", func(t *testing.T) {
-		server := NewServer(nil, nil, nil)
-		server.router = server.Handler(usm)
+		server := NewServer(&http.Server{}, nil, nil, nil)
+		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/users", strings.NewReader(`{"first_name":1}`))
-		server.router.ServeHTTP(w, req)
+		server.srv.Handler.ServeHTTP(w, req)
 
 		body, _ := ioutil.ReadAll(w.Body)
 		resp, _ := rest_errors.NewRestErrorFromBytes(body)
@@ -85,12 +85,12 @@ func TestRegisterUser(t *testing.T) {
 	})
 
 	t.Run("PasswordsNotEqual", func(t *testing.T) {
-		server := NewServer(nil, nil, nil)
-		server.router = server.Handler(usm)
+		server := NewServer(&http.Server{}, nil, nil, nil)
+		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/users", strings.NewReader(`{"password":"somepass","confirm_password":"notthesamepass"}`))
-		server.router.ServeHTTP(w, req)
+		server.srv.Handler.ServeHTTP(w, req)
 
 		body, _ := ioutil.ReadAll(w.Body)
 		resp, _ := rest_errors.NewRestErrorFromBytes(body)
@@ -104,12 +104,12 @@ func TestRegisterUser(t *testing.T) {
 			return rest_errors.NewInternalServerError("error while trying to register, try again later")
 		}
 
-		server := NewServer(nil, nil, nil)
-		server.router = server.Handler(usm)
+		server := NewServer(&http.Server{}, nil, nil, nil)
+		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/users", strings.NewReader(`{"first_name":"Oscar","last_name":"Isaac","email": "oscaac@gmail.com","password":"somepass","confirm_password":"somepass"}`))
-		server.router.ServeHTTP(w, req)
+		server.srv.Handler.ServeHTTP(w, req)
 
 		body, _ := ioutil.ReadAll(w.Body)
 		resp, _ := rest_errors.NewRestErrorFromBytes(body)
@@ -129,13 +129,13 @@ func TestGetUser(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(nil, nil, testServer.Client())
-		server.router = server.Handler(usm)
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/users/1", nil)
 		req.Header.Add("Authorization", "Bearer 084a4a0f-92cc-46e6-9b57-1d2aed3c389e")
-		server.router.ServeHTTP(w, req)
+		server.srv.Handler.ServeHTTP(w, req)
 
 		body, _ := ioutil.ReadAll(w.Body)
 		var user domain.User
@@ -151,13 +151,13 @@ func TestGetUser(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(nil, nil, testServer.Client())
-		server.router = server.Handler(usm)
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/users/abc", nil)
 		req.Header.Add("Authorization", "Bearer 084a4a0f-92cc-46e6-9b57-1d2aed3c389e")
-		server.router.ServeHTTP(w, req)
+		server.srv.Handler.ServeHTTP(w, req)
 
 		body, _ := ioutil.ReadAll(w.Body)
 		err, _ := rest_errors.NewRestErrorFromBytes(body)
@@ -171,13 +171,13 @@ func TestGetUser(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(nil, nil, testServer.Client())
-		server.router = server.Handler(usm)
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/users/2", nil)
 		req.Header.Add("Authorization", "Bearer 084a4a0f-92cc-46e6-9b57-1d2aed3c389e")
-		server.router.ServeHTTP(w, req)
+		server.srv.Handler.ServeHTTP(w, req)
 
 		body, _ := ioutil.ReadAll(w.Body)
 		err, _ := rest_errors.NewRestErrorFromBytes(body)
@@ -195,13 +195,13 @@ func TestGetUser(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(nil, nil, testServer.Client())
-		server.router = server.Handler(usm)
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/users/1", nil)
 		req.Header.Add("Authorization", "Bearer 084a4a0f-92cc-46e6-9b57-1d2aed3c389e")
-		server.router.ServeHTTP(w, req)
+		server.srv.Handler.ServeHTTP(w, req)
 
 		body, _ := ioutil.ReadAll(w.Body)
 		err, _ := rest_errors.NewRestErrorFromBytes(body)
@@ -217,12 +217,12 @@ func TestLogin(t *testing.T) {
 			return &userTest, nil
 		}
 
-		server := NewServer(nil, nil, nil)
-		server.router = server.Handler(usm)
+		server := NewServer(&http.Server{}, nil, nil, nil)
+		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/users/login", strings.NewReader(`{"email": "oscaac@gmail.com","password":"123456"}`))
-		server.router.ServeHTTP(w, req)
+		server.srv.Handler.ServeHTTP(w, req)
 
 		body, _ := ioutil.ReadAll(w.Body)
 		var user domain.User
@@ -237,12 +237,12 @@ func TestLogin(t *testing.T) {
 			return &userTest, nil
 		}
 
-		server := NewServer(nil, nil, nil)
-		server.router = server.Handler(usm)
+		server := NewServer(&http.Server{}, nil, nil, nil)
+		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/users/login", strings.NewReader(`{"email": "oscaac@gmail.com","password":123456}`))
-		server.router.ServeHTTP(w, req)
+		server.srv.Handler.ServeHTTP(w, req)
 
 		body, _ := ioutil.ReadAll(w.Body)
 		err, _ := rest_errors.NewRestErrorFromBytes(body)
@@ -257,12 +257,12 @@ func TestLogin(t *testing.T) {
 			return nil, rest_errors.NewBadRequestError("invalid credentials")
 		}
 
-		server := NewServer(nil, nil, nil)
-		server.router = server.Handler(usm)
+		server := NewServer(&http.Server{}, nil, nil, nil)
+		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/users/login", strings.NewReader(`{"email": "oscaac@gmail.com","password":"wrongpassword"}`))
-		server.router.ServeHTTP(w, req)
+		server.srv.Handler.ServeHTTP(w, req)
 
 		body, _ := ioutil.ReadAll(w.Body)
 		err, _ := rest_errors.NewRestErrorFromBytes(body)
@@ -284,13 +284,13 @@ func TestUpdate(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(nil, nil, testServer.Client())
-		server.router = server.Handler(usm)
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("PUT", "/users/1", strings.NewReader(`{"email": "oscar@newemail.com"}`))
 		req.Header.Add("Authorization", "Bearer 084a4a0f-92cc-46e6-9b57-1d2aed3c389e")
-		server.router.ServeHTTP(w, req)
+		server.srv.Handler.ServeHTTP(w, req)
 
 		body, _ := ioutil.ReadAll(w.Body)
 		var user domain.User
@@ -305,13 +305,13 @@ func TestUpdate(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(nil, nil, testServer.Client())
-		server.router = server.Handler(usm)
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("PUT", "/users/abc", strings.NewReader(`{"email": "oscar@newemail.com"}`))
 		req.Header.Add("Authorization", "Bearer 084a4a0f-92cc-46e6-9b57-1d2aed3c389e")
-		server.router.ServeHTTP(w, req)
+		server.srv.Handler.ServeHTTP(w, req)
 
 		body, _ := ioutil.ReadAll(w.Body)
 		restErr, _ := rest_errors.NewRestErrorFromBytes(body)
@@ -324,13 +324,13 @@ func TestUpdate(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(nil, nil, testServer.Client())
-		server.router = server.Handler(usm)
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("PUT", "/users/2", strings.NewReader(`{"email": "oscar@newemail.com"}`))
 		req.Header.Add("Authorization", "Bearer 084a4a0f-92cc-46e6-9b57-1d2aed3c389e")
-		server.router.ServeHTTP(w, req)
+		server.srv.Handler.ServeHTTP(w, req)
 
 		body, _ := ioutil.ReadAll(w.Body)
 		restErr, _ := rest_errors.NewRestErrorFromBytes(body)
@@ -343,13 +343,13 @@ func TestUpdate(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(nil, nil, testServer.Client())
-		server.router = server.Handler(usm)
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("PUT", "/users/1", strings.NewReader(`{"email": 2}`))
 		req.Header.Add("Authorization", "Bearer 084a4a0f-92cc-46e6-9b57-1d2aed3c389e")
-		server.router.ServeHTTP(w, req)
+		server.srv.Handler.ServeHTTP(w, req)
 
 		body, _ := ioutil.ReadAll(w.Body)
 		restErr, _ := rest_errors.NewRestErrorFromBytes(body)
@@ -362,13 +362,13 @@ func TestUpdate(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(nil, nil, testServer.Client())
-		server.router = server.Handler(usm)
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("PUT", "/users/1", strings.NewReader(`{"password":"some","confirm_password":"any"}`))
 		req.Header.Add("Authorization", "Bearer 084a4a0f-92cc-46e6-9b57-1d2aed3c389e")
-		server.router.ServeHTTP(w, req)
+		server.srv.Handler.ServeHTTP(w, req)
 
 		body, _ := ioutil.ReadAll(w.Body)
 		restErr, _ := rest_errors.NewRestErrorFromBytes(body)
