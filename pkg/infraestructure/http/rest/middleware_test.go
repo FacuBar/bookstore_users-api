@@ -85,7 +85,7 @@ func TestAuthenticate(t *testing.T) {
 		assert.EqualValues(t, "couldn't verify session's validity", err.Message())
 	})
 
-	t.Run("InvalidAt", func(t *testing.T) {
+	t.Run("InvalidAtNotAuthorized", func(t *testing.T) {
 		testServer := httptest.NewUnstartedServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			rw.WriteHeader(http.StatusNotFound)
 			rw.Write([]byte(`{"message": "access_token not found","status": 404,"error": "not_found"}`))
@@ -111,6 +111,34 @@ func TestAuthenticate(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.EqualValues(t, "you are not logged in", err.Message())
+	})
+
+	t.Run("InvalidAtInternalServerError", func(t *testing.T) {
+		testServer := httptest.NewUnstartedServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			rw.WriteHeader(http.StatusInternalServerError)
+			rw.Write([]byte(`{"message": "db error","status": 500,"error": "internal_server_error"}`))
+		}))
+		testServer.Listener.Close()
+		l, _ := net.Listen("tcp", "127.0.0.1:8081")
+		testServer.Listener = l
+		testServer.Start()
+		defer testServer.Close()
+
+		resp := httptest.NewRecorder()
+		gin.SetMode(gin.TestMode)
+		c, r := gin.CreateTestContext(resp)
+
+		r.GET("/test", authenticate(func(c *gin.Context) { c.Status(200) }, testServer.Client()))
+
+		c.Request, _ = http.NewRequest(http.MethodGet, "/test", nil)
+		c.Request.Header.Add("Authorization", "Bearer token1234")
+		r.ServeHTTP(resp, c.Request)
+
+		body, _ := ioutil.ReadAll(resp.Body)
+		err, _ := rest_errors.NewRestErrorFromBytes(body)
+
+		assert.NotNil(t, err)
+		assert.EqualValues(t, "couldn't verify session's validity", err.Message())
 	})
 
 	t.Run("NoError", func(t *testing.T) {

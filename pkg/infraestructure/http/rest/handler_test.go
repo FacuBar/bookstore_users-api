@@ -376,6 +376,38 @@ func TestUpdate(t *testing.T) {
 		assert.EqualValues(t, http.StatusBadRequest, restErr.Status())
 		assert.EqualValues(t, "passwords are not equal", restErr.Message())
 	})
+
+	t.Run("Error", func(t *testing.T) {
+		testServer := httptest.NewUnstartedServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			rw.WriteHeader(http.StatusOK)
+			rw.Write([]byte(`{"access_token":"084a4a0f-92cc-46e6-9b57-1d2aed3c389e", "user_id":1, "user_role":"admin", "expires":1637510344}`))
+		}))
+		testServer.Listener.Close()
+		l, _ := net.Listen("tcp", "127.0.0.1:8081")
+		testServer.Listener = l
+		testServer.Start()
+
+		funcUpdate = func(u *domain.User, b bool) rest_errors.RestErr {
+			return rest_errors.NewInternalServerError("db error")
+		}
+
+		defer testServer.Close()
+
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server.srv.Handler = server.Handler(usm)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("PUT", "/users/1", strings.NewReader(`{"email": "oscar@newemail.com"}`))
+		req.Header.Add("Authorization", "Bearer 084a4a0f-92cc-46e6-9b57-1d2aed3c389e")
+		server.srv.Handler.ServeHTTP(w, req)
+
+		body, _ := ioutil.ReadAll(w.Body)
+		err, _ := rest_errors.NewRestErrorFromBytes(body)
+		// var restErr rest_errors.RestErr
+		// json.Unmarshal(body, &restErr)
+		//
+		assert.NotNil(t, err)
+	})
 }
 
 // correct... mocks a succesfull call to the oauth-api made inside of the middleware
