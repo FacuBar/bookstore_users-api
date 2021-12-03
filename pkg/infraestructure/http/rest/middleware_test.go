@@ -110,7 +110,7 @@ func TestAuthenticate(t *testing.T) {
 		err, _ := rest_errors.NewRestErrorFromBytes(body)
 
 		assert.NotNil(t, err)
-		assert.EqualValues(t, "access_token not found", err.Message())
+		assert.EqualValues(t, "you are not logged in", err.Message())
 	})
 
 	t.Run("NoError", func(t *testing.T) {

@@ -89,7 +89,7 @@ func (s *usersService) Login(email string, password string) (*domain.User, rest_
 	return user, nil
 }
 
-func (s *usersService) Update(user *domain.User) rest_errors.RestErr {
+func (s *usersService) Update(user *domain.User, isAdmin bool) rest_errors.RestErr {
 	oldUser, err := s.repo.Get(user.Id)
 	if err != nil {
 		if err.Status() == http.StatusInternalServerError {
@@ -122,6 +122,11 @@ func (s *usersService) Update(user *domain.User) rest_errors.RestErr {
 
 	user.LastModified = time.Now().UTC().Format(dateLayout)
 
+	if isAdmin {
+		if err := s.repo.UpdateAdmin(user); err != nil {
+			return rest_errors.NewInternalServerError("error while trying to update user, try again later")
+		}
+	}
 	if err := s.repo.Update(user); err != nil {
 		return rest_errors.NewInternalServerError("error while trying to update user, try again later")
 	}
