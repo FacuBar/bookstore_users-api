@@ -59,7 +59,7 @@ func TestRegisterUser(t *testing.T) {
 			return nil
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, nil)
+		server := NewServer(&http.Server{}, nil, nil, nil, nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -70,7 +70,7 @@ func TestRegisterUser(t *testing.T) {
 	})
 
 	t.Run("InvalidRequest", func(t *testing.T) {
-		server := NewServer(&http.Server{}, nil, nil, nil)
+		server := NewServer(&http.Server{}, nil, nil, nil, nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -85,7 +85,7 @@ func TestRegisterUser(t *testing.T) {
 	})
 
 	t.Run("PasswordsNotEqual", func(t *testing.T) {
-		server := NewServer(&http.Server{}, nil, nil, nil)
+		server := NewServer(&http.Server{}, nil, nil, nil, nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -104,7 +104,7 @@ func TestRegisterUser(t *testing.T) {
 			return rest_errors.NewInternalServerError("error while trying to register, try again later")
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, nil)
+		server := NewServer(&http.Server{}, nil, nil, nil, nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -129,7 +129,7 @@ func TestGetUser(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -151,7 +151,7 @@ func TestGetUser(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -171,7 +171,7 @@ func TestGetUser(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -195,7 +195,7 @@ func TestGetUser(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -217,7 +217,7 @@ func TestLogin(t *testing.T) {
 			return &userTest, nil
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, nil)
+		server := NewServer(&http.Server{}, nil, nil, nil, nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -237,7 +237,7 @@ func TestLogin(t *testing.T) {
 			return &userTest, nil
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, nil)
+		server := NewServer(&http.Server{}, nil, nil, nil, nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -257,7 +257,7 @@ func TestLogin(t *testing.T) {
 			return nil, rest_errors.NewBadRequestError("invalid credentials")
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, nil)
+		server := NewServer(&http.Server{}, nil, nil, nil, nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -284,7 +284,7 @@ func TestUpdate(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -305,7 +305,7 @@ func TestUpdate(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -324,7 +324,7 @@ func TestUpdate(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -343,7 +343,7 @@ func TestUpdate(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -362,7 +362,7 @@ func TestUpdate(t *testing.T) {
 		testServer := correctTestServerResponse()
 		defer testServer.Close()
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -393,7 +393,7 @@ func TestUpdate(t *testing.T) {
 
 		defer testServer.Close()
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client())
+		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()

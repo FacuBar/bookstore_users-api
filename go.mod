@@ -8,10 +8,12 @@ require (
 	github.com/gin-gonic/gin v1.7.4
 	github.com/go-openapi/runtime v0.21.0
 	github.com/go-sql-driver/mysql v1.6.0
+	github.com/golang/protobuf v1.4.3
 	github.com/joho/godotenv v1.4.0
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.19.1
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa
+	google.golang.org/grpc v1.42.0
 )
 
 require (
@@ -33,7 +35,6 @@ require (
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
-	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
@@ -51,6 +52,8 @@ require (
 	golang.org/x/net v0.0.0-20210421230115-4e50805a0758 // indirect
 	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
 	golang.org/x/text v0.3.7 // indirect
+	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
+	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )

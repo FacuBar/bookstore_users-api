@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/clients"
+	oauth_grpc "github.com/FacuBar/bookstore_users-api/pkg/infraestructure/http/grpc/oauth"
 	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/http/rest"
 	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/logger"
 	"github.com/joho/godotenv"
@@ -23,7 +25,15 @@ func main() {
 	db := clients.ConnectDB()
 	l := logger.NewUserLogger()
 
-	server := rest.NewServer(&http.Server{Addr: ":8080"}, db, l, &http.Client{})
+	oauthClient, err := oauth_grpc.NewClient("0.0.0.0:10000")
+	if err != nil {
+		panic("error initializing grpc client")
+	}
+	fmt.Print("testing block")
+
+	server := rest.NewServer(&http.Server{Addr: ":8080"}, db, l, &http.Client{}, oauthClient)
+
+	go server.Start()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
