@@ -31,7 +31,7 @@ func main() {
 	}
 	fmt.Print("testing block")
 
-	server := rest.NewServer(&http.Server{Addr: ":8080"}, db, l, &http.Client{}, oauthClient)
+	server := rest.NewServer(&http.Server{Addr: ":8080"}, db, l, oauthClient)
 
 	go server.Start()
 

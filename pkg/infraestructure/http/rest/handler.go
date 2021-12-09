@@ -32,8 +32,8 @@ func (s *Server) Handler(us ports.UsersService) *gin.Engine {
 
 	router.POST("/users", registerUser(us))
 	router.POST("/users/login", login(us))
-	router.GET("/users/:user_id", authenticate(getUser(us), s.rest))
-	router.PUT("/users/:user_id", authenticate(updateUser(us), s.rest))
+	router.GET("/users/:user_id", authenticate(getUser(us), s.oauth.C))
+	router.PUT("/users/:user_id", authenticate(updateUser(us), s.oauth.C))
 	// router.DELETE("/users/:user_id")
 
 	// Paymentoptions relatedendpoints ("/users/:user_id/paymentoptions...")

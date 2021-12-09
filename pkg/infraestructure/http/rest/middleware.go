@@ -1,14 +1,14 @@
 package rest
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
+	"context"
 	"strings"
 
+	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/http/grpc/oauth/oauthpb"
 	"github.com/FacuBar/bookstore_utils-go/rest_errors"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -21,7 +21,7 @@ type userPayload struct {
 	Role string `json:"user_role"`
 }
 
-func authenticate(handler gin.HandlerFunc, restClient *http.Client) gin.HandlerFunc {
+func authenticate(handler gin.HandlerFunc, rpcC oauthpb.OauthServiceClient) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authorizationHeader := c.GetHeader(authHeaderKey)
 		if len(authorizationHeader) == 0 {
@@ -43,34 +43,28 @@ func authenticate(handler gin.HandlerFunc, restClient *http.Client) gin.HandlerF
 			return
 		}
 
-		resp, err := restClient.Get(fmt.Sprintf("http://localhost:8081/oauth/access_token/%s", authFields[1]))
-		if err != nil {
-			restErr := rest_errors.NewInternalServerError("couldn't verify session's validity")
-			c.AbortWithStatusJSON(restErr.Status(), restErr)
-			return
-		}
+		req := oauthpb.ValidateTokenRequest{AccessToken: authFields[1]}
 
-		bytes, err := ioutil.ReadAll(resp.Body)
+		resp, err := rpcC.ValidateToken(context.Background(), &req)
 		if err != nil {
-			restErr := rest_errors.NewInternalServerError("couldn't verify session's validity")
-			c.AbortWithStatusJSON(restErr.Status(), restErr)
-			return
-		}
-		defer resp.Body.Close()
+			errStatus, _ := status.FromError(err)
 
-		if resp.StatusCode > 299 {
-			if resp.StatusCode == http.StatusInternalServerError {
-				restErr := rest_errors.NewInternalServerError("couldn't verify session's validity")
+			if codes.Internal != errStatus.Code() {
+				restErr := rest_errors.NewUnauthorizedError("you are not logged in")
 				c.AbortWithStatusJSON(restErr.Status(), restErr)
 				return
 			}
-			restErr := rest_errors.NewUnauthorizedError("you are not logged in")
+
+			restErr := rest_errors.NewUnauthorizedError("couldn't verify session's validity")
 			c.AbortWithStatusJSON(restErr.Status(), restErr)
 			return
 		}
 
-		var user userPayload
-		json.Unmarshal(bytes, &user)
+		user := userPayload{
+			Role: strings.ToLower(oauthpb.ValidateTokenResponse_UserPayload_Role_name[int32(resp.GetUserPayload().GetRole())]),
+			Id:   resp.GetUserPayload().GetUserId(),
+		}
+
 		c.Set(userPayloadKey, user)
 
 		handler(c)

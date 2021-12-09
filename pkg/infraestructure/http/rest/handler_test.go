@@ -1,10 +1,10 @@
 package rest
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -12,8 +12,11 @@ import (
 
 	"github.com/FacuBar/bookstore_users-api/pkg/core/domain"
 	"github.com/FacuBar/bookstore_users-api/pkg/core/ports"
+	oauth_grpc "github.com/FacuBar/bookstore_users-api/pkg/infraestructure/http/grpc/oauth"
+	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/http/grpc/oauth/oauthpb"
 	"github.com/FacuBar/bookstore_utils-go/rest_errors"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
 )
 
 // Mocking services
@@ -59,7 +62,7 @@ func TestRegisterUser(t *testing.T) {
 			return nil
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, nil, nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -70,7 +73,7 @@ func TestRegisterUser(t *testing.T) {
 	})
 
 	t.Run("InvalidRequest", func(t *testing.T) {
-		server := NewServer(&http.Server{}, nil, nil, nil, nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -85,7 +88,7 @@ func TestRegisterUser(t *testing.T) {
 	})
 
 	t.Run("PasswordsNotEqual", func(t *testing.T) {
-		server := NewServer(&http.Server{}, nil, nil, nil, nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -104,7 +107,7 @@ func TestRegisterUser(t *testing.T) {
 			return rest_errors.NewInternalServerError("error while trying to register, try again later")
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, nil, nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -125,11 +128,16 @@ func TestGetUser(t *testing.T) {
 			return &userTest, nil
 		}
 
-		// correct... mocks a succesfull call to the oauth-api made inside of the middleware
-		testServer := correctTestServerResponse()
-		defer testServer.Close()
+		funcValidateToken = func(context.Context, *oauthpb.ValidateTokenRequest, ...grpc.CallOption) (*oauthpb.ValidateTokenResponse, error) {
+			return &oauthpb.ValidateTokenResponse{
+				UserPayload: &oauthpb.ValidateTokenResponse_UserPayload{
+					UserId: 1,
+					Role:   1,
+				},
+			}, nil
+		}
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -146,12 +154,7 @@ func TestGetUser(t *testing.T) {
 	})
 
 	t.Run("InvalidId", func(t *testing.T) {
-
-		// correct... mocks a succesfull call to the oauth-api made inside of the middleware
-		testServer := correctTestServerResponse()
-		defer testServer.Close()
-
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -167,11 +170,16 @@ func TestGetUser(t *testing.T) {
 	})
 
 	t.Run("LackPermissions", func(t *testing.T) {
-		// correct... mocks a succesfull call to the oauth-api made inside of the middleware
-		testServer := correctTestServerResponse()
-		defer testServer.Close()
+		funcValidateToken = func(context.Context, *oauthpb.ValidateTokenRequest, ...grpc.CallOption) (*oauthpb.ValidateTokenResponse, error) {
+			return &oauthpb.ValidateTokenResponse{
+				UserPayload: &oauthpb.ValidateTokenResponse_UserPayload{
+					UserId: 1,
+					Role:   1,
+				},
+			}, nil
+		}
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -191,11 +199,16 @@ func TestGetUser(t *testing.T) {
 			return nil, rest_errors.NewNotFoundError("user not found")
 		}
 
-		// correct... mocks a succesfull call to the oauth-api made inside of the middleware
-		testServer := correctTestServerResponse()
-		defer testServer.Close()
+		funcValidateToken = func(context.Context, *oauthpb.ValidateTokenRequest, ...grpc.CallOption) (*oauthpb.ValidateTokenResponse, error) {
+			return &oauthpb.ValidateTokenResponse{
+				UserPayload: &oauthpb.ValidateTokenResponse_UserPayload{
+					UserId: 1,
+					Role:   1,
+				},
+			}, nil
+		}
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -217,7 +230,7 @@ func TestLogin(t *testing.T) {
 			return &userTest, nil
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, nil, nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -237,7 +250,7 @@ func TestLogin(t *testing.T) {
 			return &userTest, nil
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, nil, nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -257,7 +270,7 @@ func TestLogin(t *testing.T) {
 			return nil, rest_errors.NewBadRequestError("invalid credentials")
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, nil, nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -277,14 +290,19 @@ func TestUpdate(t *testing.T) {
 	t.Run("NoError", func(t *testing.T) {
 		funcUpdate = func(u *domain.User, b bool) rest_errors.RestErr {
 			u.FirstName = "Oscar"
-
 			return nil
 		}
 
-		testServer := correctTestServerResponse()
-		defer testServer.Close()
+		funcValidateToken = func(context.Context, *oauthpb.ValidateTokenRequest, ...grpc.CallOption) (*oauthpb.ValidateTokenResponse, error) {
+			return &oauthpb.ValidateTokenResponse{
+				UserPayload: &oauthpb.ValidateTokenResponse_UserPayload{
+					UserId: 1,
+					Role:   1,
+				},
+			}, nil
+		}
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -302,10 +320,7 @@ func TestUpdate(t *testing.T) {
 	})
 
 	t.Run("InvalidId", func(t *testing.T) {
-		testServer := correctTestServerResponse()
-		defer testServer.Close()
-
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -321,10 +336,16 @@ func TestUpdate(t *testing.T) {
 	})
 
 	t.Run("UnauthorizedSession", func(t *testing.T) {
-		testServer := correctTestServerResponse()
-		defer testServer.Close()
+		funcValidateToken = func(context.Context, *oauthpb.ValidateTokenRequest, ...grpc.CallOption) (*oauthpb.ValidateTokenResponse, error) {
+			return &oauthpb.ValidateTokenResponse{
+				UserPayload: &oauthpb.ValidateTokenResponse_UserPayload{
+					UserId: 1,
+					Role:   1,
+				},
+			}, nil
+		}
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -340,10 +361,16 @@ func TestUpdate(t *testing.T) {
 	})
 
 	t.Run("InvalidReqBody", func(t *testing.T) {
-		testServer := correctTestServerResponse()
-		defer testServer.Close()
+		funcValidateToken = func(context.Context, *oauthpb.ValidateTokenRequest, ...grpc.CallOption) (*oauthpb.ValidateTokenResponse, error) {
+			return &oauthpb.ValidateTokenResponse{
+				UserPayload: &oauthpb.ValidateTokenResponse_UserPayload{
+					UserId: 1,
+					Role:   1,
+				},
+			}, nil
+		}
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -359,10 +386,16 @@ func TestUpdate(t *testing.T) {
 	})
 
 	t.Run("PasswordsNotEqual", func(t *testing.T) {
-		testServer := correctTestServerResponse()
-		defer testServer.Close()
+		funcValidateToken = func(context.Context, *oauthpb.ValidateTokenRequest, ...grpc.CallOption) (*oauthpb.ValidateTokenResponse, error) {
+			return &oauthpb.ValidateTokenResponse{
+				UserPayload: &oauthpb.ValidateTokenResponse_UserPayload{
+					UserId: 1,
+					Role:   1,
+				},
+			}, nil
+		}
 
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -378,22 +411,20 @@ func TestUpdate(t *testing.T) {
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		testServer := httptest.NewUnstartedServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-			rw.WriteHeader(http.StatusOK)
-			rw.Write([]byte(`{"access_token":"084a4a0f-92cc-46e6-9b57-1d2aed3c389e", "user_id":1, "user_role":"admin", "expires":1637510344}`))
-		}))
-		testServer.Listener.Close()
-		l, _ := net.Listen("tcp", "127.0.0.1:8081")
-		testServer.Listener = l
-		testServer.Start()
+		funcValidateToken = func(context.Context, *oauthpb.ValidateTokenRequest, ...grpc.CallOption) (*oauthpb.ValidateTokenResponse, error) {
+			return &oauthpb.ValidateTokenResponse{
+				UserPayload: &oauthpb.ValidateTokenResponse_UserPayload{
+					UserId: 1,
+					Role:   2,
+				},
+			}, nil
+		}
 
 		funcUpdate = func(u *domain.User, b bool) rest_errors.RestErr {
 			return rest_errors.NewInternalServerError("db error")
 		}
 
-		defer testServer.Close()
-
-		server := NewServer(&http.Server{}, nil, nil, testServer.Client(), nil)
+		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -408,17 +439,4 @@ func TestUpdate(t *testing.T) {
 		//
 		assert.NotNil(t, err)
 	})
-}
-
-// correct... mocks a succesfull call to the oauth-api made inside of the middleware
-func correctTestServerResponse() *httptest.Server {
-	testServer := httptest.NewUnstartedServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		rw.WriteHeader(http.StatusOK)
-		rw.Write([]byte(`{"access_token":"084a4a0f-92cc-46e6-9b57-1d2aed3c389e", "user_id":1, "user_role":"user", "expires":1637510344}`))
-	}))
-	testServer.Listener.Close()
-	l, _ := net.Listen("tcp", "127.0.0.1:8081")
-	testServer.Listener = l
-	testServer.Start()
-	return testServer
 }

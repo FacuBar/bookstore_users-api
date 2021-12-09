@@ -20,11 +20,10 @@ type Server struct {
 	oauth *oauth_grpc.Client
 }
 
-func NewServer(srv *http.Server, db *sql.DB, l ports.UserLogger, rest *http.Client, oauth *oauth_grpc.Client) *Server {
+func NewServer(srv *http.Server, db *sql.DB, l ports.UserLogger, oauth *oauth_grpc.Client) *Server {
 	server := &Server{
 		db:    db,
 		l:     l,
-		rest:  rest,
 		srv:   srv,
 		oauth: oauth,
 	}
