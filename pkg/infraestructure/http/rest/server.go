@@ -15,7 +15,6 @@ import (
 type Server struct {
 	db    *sql.DB
 	l     ports.UserLogger
-	rest  *http.Client
 	srv   *http.Server
 	oauth *oauth_grpc.Client
 }
