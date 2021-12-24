@@ -22,6 +22,7 @@ import (
 
 	"github.com/FacuBar/bookstore_users-api/pkg/core/domain"
 	"github.com/FacuBar/bookstore_users-api/pkg/core/ports"
+	"github.com/FacuBar/bookstore_utils-go/auth"
 	"github.com/FacuBar/bookstore_utils-go/rest_errors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/runtime/middleware"
@@ -32,8 +33,8 @@ func (s *Server) Handler(us ports.UsersService) *gin.Engine {
 
 	router.POST("/users", registerUser(us))
 	router.POST("/users/login", login(us))
-	router.GET("/users/:user_id", authenticate(getUser(us), s.oauth.C))
-	router.PUT("/users/:user_id", authenticate(updateUser(us), s.oauth.C))
+	router.GET("/users/:user_id", auth.RequiresAuth(getUser(us), s.oauth.C))
+	router.PUT("/users/:user_id", auth.RequiresAuth(updateUser(us), s.oauth.C))
 	// router.DELETE("/users/:user_id")
 
 	// Paymentoptions relatedendpoints ("/users/:user_id/paymentoptions...")
@@ -109,7 +110,7 @@ func getUser(s ports.UsersService) gin.HandlerFunc {
 			return
 		}
 
-		authorizedUser := c.MustGet(userPayloadKey).(userPayload)
+		authorizedUser := c.MustGet("user_payload").(auth.UserPayload)
 		if authorizedUser.Id != userId {
 			restErr := rest_errors.NewUnauthorizedError("you don't have the permissions to access this resource")
 			c.JSON(restErr.Status(), restErr)
@@ -180,7 +181,7 @@ func updateUser(s ports.UsersService) gin.HandlerFunc {
 			return
 		}
 
-		authorizedUser := c.MustGet(userPayloadKey).(userPayload)
+		authorizedUser := c.MustGet("user_payload").(auth.UserPayload)
 
 		if authorizedUser.Id != userId && authorizedUser.Role != "admin" {
 			restErr := rest_errors.NewUnauthorizedError("you don't have the permissions to perform this action")

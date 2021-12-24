@@ -8,18 +8,18 @@ import (
 
 	"github.com/FacuBar/bookstore_users-api/pkg/core/ports"
 	"github.com/FacuBar/bookstore_users-api/pkg/core/service"
-	oauth_grpc "github.com/FacuBar/bookstore_users-api/pkg/infraestructure/http/grpc/oauth"
 	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/repositories"
+	"github.com/FacuBar/bookstore_utils-go/auth"
 )
 
 type Server struct {
 	db    *sql.DB
 	l     ports.UserLogger
 	srv   *http.Server
-	oauth *oauth_grpc.Client
+	oauth *auth.Client
 }
 
-func NewServer(srv *http.Server, db *sql.DB, l ports.UserLogger, oauth *oauth_grpc.Client) *Server {
+func NewServer(srv *http.Server, db *sql.DB, l ports.UserLogger, oauth *auth.Client) *Server {
 	server := &Server{
 		db:    db,
 		l:     l,

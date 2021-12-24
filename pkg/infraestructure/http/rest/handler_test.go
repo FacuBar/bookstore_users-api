@@ -12,8 +12,8 @@ import (
 
 	"github.com/FacuBar/bookstore_users-api/pkg/core/domain"
 	"github.com/FacuBar/bookstore_users-api/pkg/core/ports"
-	oauth_grpc "github.com/FacuBar/bookstore_users-api/pkg/infraestructure/http/grpc/oauth"
-	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/http/grpc/oauth/oauthpb"
+	"github.com/FacuBar/bookstore_utils-go/auth"
+	"github.com/FacuBar/bookstore_utils-go/auth/oauthpb"
 	"github.com/FacuBar/bookstore_utils-go/rest_errors"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
@@ -45,6 +45,17 @@ func (m *usersServiceMock) Login(email string, password string) (*domain.User, r
 
 var usm ports.UsersService = &usersServiceMock{}
 
+// Mocking auth grpc client
+type oauthSCmock struct{}
+
+var (
+	funcValidateToken func(context.Context, *oauthpb.ValidateTokenRequest, ...grpc.CallOption) (*oauthpb.ValidateTokenResponse, error)
+)
+
+func (m *oauthSCmock) ValidateToken(ctx context.Context, in *oauthpb.ValidateTokenRequest, opts ...grpc.CallOption) (*oauthpb.ValidateTokenResponse, error) {
+	return funcValidateToken(ctx, in)
+}
+
 var userTest = domain.User{
 	Id:          1,
 	FirstName:   "Oscar",
@@ -62,7 +73,7 @@ func TestRegisterUser(t *testing.T) {
 			return nil
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -73,7 +84,7 @@ func TestRegisterUser(t *testing.T) {
 	})
 
 	t.Run("InvalidRequest", func(t *testing.T) {
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -88,7 +99,7 @@ func TestRegisterUser(t *testing.T) {
 	})
 
 	t.Run("PasswordsNotEqual", func(t *testing.T) {
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -107,7 +118,7 @@ func TestRegisterUser(t *testing.T) {
 			return rest_errors.NewInternalServerError("error while trying to register, try again later")
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -137,7 +148,7 @@ func TestGetUser(t *testing.T) {
 			}, nil
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -154,7 +165,7 @@ func TestGetUser(t *testing.T) {
 	})
 
 	t.Run("InvalidId", func(t *testing.T) {
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -179,7 +190,7 @@ func TestGetUser(t *testing.T) {
 			}, nil
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -208,7 +219,7 @@ func TestGetUser(t *testing.T) {
 			}, nil
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -230,7 +241,7 @@ func TestLogin(t *testing.T) {
 			return &userTest, nil
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -250,7 +261,7 @@ func TestLogin(t *testing.T) {
 			return &userTest, nil
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -270,7 +281,7 @@ func TestLogin(t *testing.T) {
 			return nil, rest_errors.NewBadRequestError("invalid credentials")
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -302,7 +313,7 @@ func TestUpdate(t *testing.T) {
 			}, nil
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -320,7 +331,7 @@ func TestUpdate(t *testing.T) {
 	})
 
 	t.Run("InvalidId", func(t *testing.T) {
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -345,7 +356,7 @@ func TestUpdate(t *testing.T) {
 			}, nil
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -370,7 +381,7 @@ func TestUpdate(t *testing.T) {
 			}, nil
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -395,7 +406,7 @@ func TestUpdate(t *testing.T) {
 			}, nil
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
@@ -424,7 +435,7 @@ func TestUpdate(t *testing.T) {
 			return rest_errors.NewInternalServerError("db error")
 		}
 
-		server := NewServer(&http.Server{}, nil, nil, &oauth_grpc.Client{C: &oauthSCmock{}})
+		server := NewServer(&http.Server{}, nil, nil, &auth.Client{C: &oauthSCmock{}})
 		server.srv.Handler = server.Handler(usm)
 
 		w := httptest.NewRecorder()
