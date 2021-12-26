@@ -20,12 +20,14 @@ var (
 
 type usersService struct {
 	repo ports.UsersRepository
+	rmq  ports.UserRMQ
 }
 
-func NewUsersService(repo ports.UsersRepository) ports.UsersService {
+func NewUsersService(repo ports.UsersRepository, rmq ports.UserRMQ) ports.UsersService {
 	onceUsersService.Do(func() {
 		instanceUsersService = &usersService{
 			repo: repo,
+			rmq:  rmq,
 		}
 	})
 	return instanceUsersService
@@ -67,6 +69,7 @@ func (s *usersService) Register(user *domain.User) rest_errors.RestErr {
 		}
 		return rest_errors.NewInternalServerError("error while trying to register, try again later")
 	}
+	s.rmq.Publish(user)
 	return nil
 }
 
@@ -130,6 +133,7 @@ func (s *usersService) Update(user *domain.User, isAdmin bool) rest_errors.RestE
 	if err := s.repo.Update(user); err != nil {
 		return rest_errors.NewInternalServerError("error while trying to update user, try again later")
 	}
+	s.rmq.Publish(user)
 	return nil
 }
 
