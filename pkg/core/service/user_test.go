@@ -64,7 +64,7 @@ func TestGetUser(t *testing.T) {
 			return &userTest, nil
 		}
 
-		s := NewUsersService(repoMock)
+		s := NewUsersService(repoMock, nil)
 		user, err := s.GetUser(1)
 
 		assert.Nil(t, err)
@@ -78,7 +78,7 @@ func TestGetUser(t *testing.T) {
 			return nil, rest_errors.NewNotFoundError("user not found")
 		}
 
-		s := NewUsersService(repoMock)
+		s := NewUsersService(repoMock, nil)
 		user, err := s.GetUser(1)
 
 		assert.Nil(t, user)
@@ -92,7 +92,7 @@ func TestGetUser(t *testing.T) {
 			return nil, rest_errors.NewInternalServerError("db error")
 		}
 
-		s := NewUsersService(repoMock)
+		s := NewUsersService(repoMock, nil)
 		user, err := s.GetUser(1)
 
 		assert.Nil(t, user)
@@ -104,7 +104,7 @@ func TestGetUser(t *testing.T) {
 
 func TestRegister(t *testing.T) {
 	t.Run("UserNotValid", func(t *testing.T) {
-		s := NewUsersService(repoMock)
+		s := NewUsersService(repoMock, nil)
 
 		user := domain.User{Email: ""}
 		err := s.Register(&user)
@@ -118,7 +118,7 @@ func TestRegister(t *testing.T) {
 			return nil
 		}
 
-		s := NewUsersService(repoMock)
+		s := NewUsersService(repoMock, nil)
 
 		user := userTest
 		user.Password = "password"
@@ -133,7 +133,7 @@ func TestRegister(t *testing.T) {
 		funcSave = func(u *domain.User) rest_errors.RestErr {
 			return rest_errors.NewInternalServerError("db error")
 		}
-		s := NewUsersService(repoMock)
+		s := NewUsersService(repoMock, nil)
 
 		user := userTest
 		err := s.Register(&user)
@@ -148,7 +148,7 @@ func TestLogin(t *testing.T) {
 		funcGetByEmail = func(s string) (*domain.User, rest_errors.RestErr) {
 			return &userTest, nil
 		}
-		s := NewUsersService(repoMock)
+		s := NewUsersService(repoMock, nil)
 
 		user, err := s.Login("oscaac@gmail.com", "password")
 
@@ -161,7 +161,7 @@ func TestLogin(t *testing.T) {
 		funcGetByEmail = func(s string) (*domain.User, rest_errors.RestErr) {
 			return &userTest, nil
 		}
-		s := NewUsersService(repoMock)
+		s := NewUsersService(repoMock, nil)
 
 		user, err := s.Login("oscaac@gmail.com", "notthepassword")
 
@@ -175,7 +175,7 @@ func TestLogin(t *testing.T) {
 		funcGetByEmail = func(s string) (*domain.User, rest_errors.RestErr) {
 			return nil, rest_errors.NewNotFoundError("user not found")
 		}
-		s := NewUsersService(repoMock)
+		s := NewUsersService(repoMock, nil)
 
 		user, err := s.Login("oscaac@gmail.com", "password")
 
@@ -189,7 +189,7 @@ func TestLogin(t *testing.T) {
 		funcGetByEmail = func(s string) (*domain.User, rest_errors.RestErr) {
 			return nil, rest_errors.NewInternalServerError("db error")
 		}
-		s := NewUsersService(repoMock)
+		s := NewUsersService(repoMock, nil)
 
 		user, err := s.Login("oscaac@gmail.com", "password")
 
@@ -218,7 +218,7 @@ func TestUpdate(t *testing.T) {
 			return nil
 		}
 
-		s := NewUsersService(repoMock)
+		s := NewUsersService(repoMock, nil)
 
 		update := userTestUpdate
 
@@ -237,7 +237,7 @@ func TestUpdate(t *testing.T) {
 			return nil, rest_errors.NewInternalServerError("db error")
 		}
 
-		s := NewUsersService(repoMock)
+		s := NewUsersService(repoMock, nil)
 
 		update := userTestUpdate
 
@@ -253,7 +253,7 @@ func TestUpdate(t *testing.T) {
 			return nil, rest_errors.NewNotFoundError("user not found")
 		}
 
-		s := NewUsersService(repoMock)
+		s := NewUsersService(repoMock, nil)
 
 		update := userTestUpdate
 
@@ -273,7 +273,7 @@ func TestUpdate(t *testing.T) {
 		funcUpdate = func(u *domain.User) rest_errors.RestErr {
 			return rest_errors.NewInternalServerError("db error")
 		}
-		s := NewUsersService(repoMock)
+		s := NewUsersService(repoMock, nil)
 
 		update := userTestUpdate
 

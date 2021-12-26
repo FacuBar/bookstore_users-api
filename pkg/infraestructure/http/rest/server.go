@@ -5,30 +5,34 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/FacuBar/bookstore_users-api/pkg/core/ports"
 	"github.com/FacuBar/bookstore_users-api/pkg/core/service"
+	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/clients"
 	"github.com/FacuBar/bookstore_users-api/pkg/infraestructure/repositories"
 	"github.com/FacuBar/bookstore_utils-go/auth"
 )
 
 type Server struct {
-	db    *sql.DB
-	l     ports.UserLogger
-	srv   *http.Server
-	oauth *auth.Client
+	db       *sql.DB
+	l        ports.UserLogger
+	srv      *http.Server
+	oauth    *auth.Client
+	rabbitmq *clients.RabbitMQ
 }
 
-func NewServer(srv *http.Server, db *sql.DB, l ports.UserLogger, oauth *auth.Client) *Server {
+func NewServer(srv *http.Server, db *sql.DB, l ports.UserLogger, oauth *auth.Client, rmq *clients.RabbitMQ) *Server {
 	server := &Server{
-		db:    db,
-		l:     l,
-		srv:   srv,
-		oauth: oauth,
+		db:       db,
+		l:        l,
+		srv:      srv,
+		oauth:    oauth,
+		rabbitmq: rmq,
 	}
 
 	ur := repositories.NewUsersRepository(db, l)
-	us := service.NewUsersService(ur)
+	us := service.NewUsersService(ur, rmq)
 
 	router := server.Handler(us)
 
@@ -45,6 +49,8 @@ func (s *Server) Start() {
 func (s *Server) Stop(ctx context.Context) {
 	s.db.Close()
 	s.oauth.CC.Close()
+	s.rabbitmq.Channel.Close()
+	s.rabbitmq.Connection.Close()
 
 	go func() {
 		if err := s.srv.Shutdown(ctx); err != nil {
@@ -53,4 +59,5 @@ func (s *Server) Stop(ctx context.Context) {
 	}()
 
 	log.Println("Server exiting")
+	os.Exit(0)
 }
