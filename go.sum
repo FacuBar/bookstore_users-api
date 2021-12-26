@@ -3,12 +3,6 @@ cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/DATA-DOG/go-sqlmock v1.5.0 h1:Shsta01QNfFxHCfpW6YH2STWB0MudeXXEWMr20OEh60=
 github.com/DATA-DOG/go-sqlmock v1.5.0/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
-github.com/FacuBar/bookstore_utils-go v0.0.0-20211223193349-39a8ae43083d h1:XdkNv61Xw26cfBwqHXHzhNGaRQg+DWbv+N/x4OjrytY=
-github.com/FacuBar/bookstore_utils-go v0.0.0-20211223193349-39a8ae43083d/go.mod h1:J01QupcH5qgJZ4oP9sjhvl7ZcLMSmuoop7LQ2I/nKHU=
-github.com/FacuBar/bookstore_utils-go v0.0.0-20211224000145-0585503dc9d8 h1:OnicREoyjhdiKKOg4h0O2vxaZmCpp2/Q5guPSecINnU=
-github.com/FacuBar/bookstore_utils-go v0.0.0-20211224000145-0585503dc9d8/go.mod h1:J01QupcH5qgJZ4oP9sjhvl7ZcLMSmuoop7LQ2I/nKHU=
-github.com/FacuBar/bookstore_utils-go v0.0.0-20211224005852-da3675e2ad85 h1:AY+K2Eh6IFUsn5D10RlPGKiKfvjFNCvUfMVLs7aPbfE=
-github.com/FacuBar/bookstore_utils-go v0.0.0-20211224005852-da3675e2ad85/go.mod h1:J01QupcH5qgJZ4oP9sjhvl7ZcLMSmuoop7LQ2I/nKHU=
 github.com/FacuBar/bookstore_utils-go v0.0.0-20211224014730-7ad1348220a2 h1:PZqjymwdNCvmVSSGgxdIe67UWcgZhgMzNgCou4oUCpA=
 github.com/FacuBar/bookstore_utils-go v0.0.0-20211224014730-7ad1348220a2/go.mod h1:J01QupcH5qgJZ4oP9sjhvl7ZcLMSmuoop7LQ2I/nKHU=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
@@ -319,12 +313,11 @@ github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6Mwd
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/spf13/cobra v0.0.3/go.mod h1:1l0Ry5zgKvJasoi3XT1TypsSe7PqH0Sj9dhYf7v3XqQ=
 github.com/spf13/pflag v1.0.3/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
+github.com/streadway/amqp v1.0.0 h1:kuuDrUJFZL1QYL9hUNuCxNObNzB0bV/ZG5jV3RWAQgo=
+github.com/streadway/amqp v1.0.0/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
-github.com/stretchr/objx v0.2.0 h1:Hbg2NidpLE8veEBkEZTL3CvlkUIVzuU9jDplZO54c48=
 github.com/stretchr/objx v0.2.0/go.mod h1:qt09Ya8vawLte6SNmTgCsAVtYtaKzEcn8ATUoHMkEqE=
-github.com/stretchr/objx v0.3.0 h1:NGXK3lHquSN08v5vWalVI/L8XU9hdzE/G6xsrze47As=
-github.com/stretchr/objx v0.3.0/go.mod h1:qt09Ya8vawLte6SNmTgCsAVtYtaKzEcn8ATUoHMkEqE=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
