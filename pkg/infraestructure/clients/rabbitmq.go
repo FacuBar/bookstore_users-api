@@ -41,16 +41,16 @@ func NewRabbitMQ(url string) (*RabbitMQ, error) {
 	}, nil
 }
 
-func (t *RabbitMQ) Publish(routingKey string, e interface{}) error {
+func (r *RabbitMQ) Publish(e interface{}) error {
 	var b bytes.Buffer
 
 	if err := gob.NewEncoder(&b).Encode(e); err != nil {
 		return err
 	}
 
-	err := t.Channel.Publish(
+	err := r.Channel.Publish(
+		"",
 		"users",
-		routingKey,
 		false,
 		false,
 		amqp.Publishing{
