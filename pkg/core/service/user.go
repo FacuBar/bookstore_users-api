@@ -69,7 +69,7 @@ func (s *usersService) Register(user *domain.User) rest_errors.RestErr {
 		}
 		return rest_errors.NewInternalServerError("error while trying to register, try again later")
 	}
-	s.rmq.Publish("user.event.register", user)
+	s.rmq.Publish("users.event.register", user)
 	return nil
 }
 
@@ -133,7 +133,7 @@ func (s *usersService) Update(user *domain.User, isAdmin bool) rest_errors.RestE
 	if err := s.repo.Update(user); err != nil {
 		return rest_errors.NewInternalServerError("error while trying to update user, try again later")
 	}
-	s.rmq.Publish("user.event.update", user)
+	s.rmq.Publish("users.event.update", user)
 	return nil
 }
 
