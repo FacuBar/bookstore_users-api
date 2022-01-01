@@ -24,9 +24,10 @@ func NewRabbitMQ(url string) (*RabbitMQ, error) {
 		return nil, err
 	}
 
-	if _, err = ch.QueueDeclare(
+	if err = ch.ExchangeDeclare(
 		"users",
-		false,
+		"direct",
+		true,
 		false,
 		false,
 		false,
@@ -41,7 +42,7 @@ func NewRabbitMQ(url string) (*RabbitMQ, error) {
 	}, nil
 }
 
-func (r *RabbitMQ) Publish(e interface{}) error {
+func (r *RabbitMQ) Publish(routingKey string, e interface{}) error {
 	var b bytes.Buffer
 
 	if err := gob.NewEncoder(&b).Encode(e); err != nil {
@@ -49,12 +50,12 @@ func (r *RabbitMQ) Publish(e interface{}) error {
 	}
 
 	err := r.Channel.Publish(
-		"",
 		"users",
+		routingKey,
 		false,
 		false,
 		amqp.Publishing{
-			AppId:       "tasks-rest-server",
+			AppId:       "users-rest-server",
 			ContentType: "application/x-encoding-gob",
 			Body:        b.Bytes(),
 			Timestamp:   time.Now(),
@@ -64,4 +65,8 @@ func (r *RabbitMQ) Publish(e interface{}) error {
 	}
 
 	return nil
+}
+
+func (r *RabbitMQ) Close() {
+	r.Connection.Close()
 }

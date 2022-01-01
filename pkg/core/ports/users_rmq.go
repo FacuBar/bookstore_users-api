@@ -1,5 +1,5 @@
 package ports
 
 type UserRMQ interface {
-	Publish(interface{}) error
+	Publish(string, interface{}) error
 }
