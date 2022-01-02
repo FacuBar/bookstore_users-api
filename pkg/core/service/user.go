@@ -73,7 +73,7 @@ func (s *usersService) Register(user *domain.User) rest_errors.RestErr {
 	return nil
 }
 
-func (s *usersService) Login(email string, password string) (*domain.User, rest_errors.RestErr) {
+func (s *usersService) Login(email, password string) (*domain.User, rest_errors.RestErr) {
 	user, err := s.repo.GetByEmail(strings.ToLower(strings.TrimSpace(email)))
 	if err != nil {
 		switch err.Status() {
