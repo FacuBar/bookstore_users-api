@@ -24,7 +24,7 @@ func main() {
 	db := clients.ConnectDB()
 	l := logger.NewUserLogger()
 
-	oauthClient, err := auth.NewClient("0.0.0.0:10000")
+	oauthClient, err := auth.NewClient(os.Getenv("GRPC_OAUTH_ADDRESS"))
 	if err != nil {
 		panic("error connecting grpc client")
 	}
@@ -34,7 +34,7 @@ func main() {
 		panic("error connecting rabbitMQ")
 	}
 
-	server := rest.NewServer(&http.Server{Addr: ":8080"}, db, l, oauthClient, RMQ)
+	server := rest.NewServer(&http.Server{Addr: os.Getenv("PORT")}, db, l, oauthClient, RMQ)
 
 	go server.Start()
 
